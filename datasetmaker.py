@@ -141,6 +141,8 @@ while True:
         else:
             save_list = []
             window['-fname-'].update(f'Image: {os.path.basename(fname)}\n Text: Not Exist')
+        if mode == 4:
+            censoring_positions[count] = []
         if len(censoring_positions[count]) > 0:
             for cid, tid, x0, y0, x1, y1 in censoring_positions[count]:
                 cv2.rectangle(frame, (x0, y0), (x1, y1), (255, 0, 0), thickness=1)
@@ -263,6 +265,9 @@ while True:
 
             except Exception as e:
                 print(e)
+    elif event == '-cancel-':
+        mode = 4
+        img_changed = True
     elif event == '-back-' and img_opened:
         mode = 1
         count -= 1
