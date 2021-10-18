@@ -37,13 +37,15 @@ layout = [
          sg.FolderBrowse('Browse', size=(10, 1), font='Helvetica 14', key='-browse-'),
          sg.Button('Open', size=(10, 1), font='Helvetica 14', key='-open-')
          ],
-        [sg.Text('CID: ', size=(5, 1), font='Helvetica 14', key='-cid-'),
+        [sg.Text('CID: ', size=(10, 1), font='Helvetica 14', key='-cid-'),
          sg.InputText(default_text='0', size=(10, 1), key='-cid_input-'),
          sg.Button('SET', size=(10, 1), font='Helvetica 14', key='-set_cid-'),
          sg.Text('-', size=(20, 1), font='Helvetica 14', key='-cid_label-')],
-        [sg.Text('TID: ', size=(5, 1), font='Helvetica 14', key='-tid-'),
+        [sg.Text('TID: ', size=(10, 1), font='Helvetica 14', key='-tid-'),
          sg.InputText(default_text='0', size=(10, 1), key='-tid_input-'),
-         sg.Button('SET', size=(10, 1), font='Helvetica 14', key='-set_tid-')],
+         sg.Button('SET', size=(10, 1), font='Helvetica 14', key='-set_tid-'),
+         sg.Text(' ', size=(5, 1), font='Helvetica 14'),
+         sg.Checkbox('Use Original Frame For MagWindow', key='-use_original-')],
         # [sg.Image(filename='', key='image')],
         [sg.Button('Box', size=(10, 1), font='Helvetica 14', key='-box-'),
          sg.Button('Add', size=(10, 1), font='Helvetica 14', key='-add-'),
@@ -84,12 +86,12 @@ def box_add_erase(frame):
     color = (0, 255, 0) if mode == 1 else (0, 0, 255)
     if len(box_list) == 0:
         box_list = [[mode, coordinates]]
-        frame = cv2.circle(frame, tuple(coordinates), 3, color, -1)
+        frame = cv2.circle(frame, tuple(coordinates), 2, color, -1)
     else:
         if len(box_list[-1]) < 5:
             if box_list[-1][0] == mode:
                 box_list[-1].append(coordinates)
-                frame = cv2.circle(frame, tuple(coordinates), 4, color, -1)
+                frame = cv2.circle(frame, tuple(coordinates), 2, color, -1)
                 if len(box_list[-1]) == 5:
                     x_list = [c[0] for c in box_list[-1][1:]]
                     y_list = [c[1] for c in box_list[-1][1:]]
@@ -100,7 +102,7 @@ def box_add_erase(frame):
         else:
             # first time of this box
             box_list.append([mode, coordinates])
-            frame = cv2.circle(frame, tuple(coordinates), 4, color, -1)
+            frame = cv2.circle(frame, tuple(coordinates), 2, color, -1)
     return frame
 
 
@@ -118,6 +120,7 @@ while True:
     if img_changed:
         fname = fnames[count]
         frame = imread(fname)
+        orig_frame = frame.copy()
         height, width, channels = frame.shape[:3]
 
         img_changed = False
@@ -138,6 +141,7 @@ while True:
                 cv2.putText(frame, f't{tid},c{cid}', (x0, y1), cv2.FONT_HERSHEY_PLAIN, 1, (255, 255, 255), 2)
             save_list = data
             window['-fname-'].update(f'Image: {os.path.basename(fname)}\n Text: {os.path.basename(savefile)}')
+            print(f'Load {savefile}:\n' + '\n'.join(save_list))
         else:
             save_list = []
             window['-fname-'].update(f'Image: {os.path.basename(fname)}\n Text: Not Exist')
@@ -160,22 +164,22 @@ while True:
         if mode == 3:
             mode = 0
             try:
-                for box in box_list:
-                    x_list = [c[0] for c in box[1:]]
-                    y_list = [c[1] for c in box[1:]]
-                    safe_list = []
-                    x_min, y_min, x_max, y_max = min(x_list), min(y_list), max(x_list), max(y_list)
-                    for d_str in save_list:
-                        cid, tid, cx, cy, bw, bh = d_str.split(' ')
-                        x0 = int((float(cx) - float(bw) / 2) * width)
-                        x1 = int((float(cx) + float(bw) / 2) * width)
-                        y0 = int((float(cy) - float(bh) / 2) * height)
-                        y1 = int((float(cy) + float(bh) / 2) * height)
-                        if x_min <= x0 <= x_max and x_min <= x1 <= x_max and y_min <= y0 <= y_max and y_min <= y0 <= y_max:
-                            pass
-                        else:
-                            safe_list.append([cid, tid, x0, y0, x1, y1])
-                    censoring_positions[count] = safe_list
+                # for box in box_list:
+                #     x_list = [c[0] for c in box[1:]]
+                #     y_list = [c[1] for c in box[1:]]
+                #     safe_list = []
+                #     x_min, y_min, x_max, y_max = min(x_list), min(y_list), max(x_list), max(y_list)
+                #     for d_str in save_list:
+                #         cid, tid, cx, cy, bw, bh = d_str.split(' ')
+                #         x0 = int((float(cx) - float(bw) / 2) * width)
+                #         x1 = int((float(cx) + float(bw) / 2) * width)
+                #         y0 = int((float(cy) - float(bh) / 2) * height)
+                #         y1 = int((float(cy) + float(bh) / 2) * height)
+                #         if x_min <= x0 <= x_max and x_min <= x1 <= x_max and y_min <= y0 <= y_max and y_min <= y0 <= y_max:
+                #             pass
+                #         else:
+                #             safe_list.append([cid, tid, x0, y0, x1, y1])
+                #     censoring_positions[count] = safe_list
                 box_list = []
                 window['-status-'].update(f'Erased')
             except Exception as e:
@@ -331,7 +335,10 @@ while True:
             y_p += y_br - height
             y_tl, y_br = height - magnifying_h, height
         # cv.imshow('magnifying mode', cv.resize(frame[y_tl:y_br, x_tl:x_br], window_size))
-        mag_frame = frame[y_tl:y_br, x_tl:x_br].copy()
+        if values['-use_original-']:
+            mag_frame = orig_frame[y_tl:y_br, x_tl:x_br].copy()
+        else:
+            mag_frame = frame[y_tl:y_br, x_tl:x_br].copy()
         h, w, c = mag_frame.shape[:3]
         cv2.line(mag_frame, (int(w / 2), 0), (int(w / 2), h), (60, 60, 60), thickness=1)
         cv2.line(mag_frame, (0, int(h / 2)), (w, int(h / 2)), (60, 60, 60), thickness=1)
@@ -347,6 +354,8 @@ while True:
     if img_opened:
         cv2.imshow('q=EXIT,f=Forward,b=Back', frame)
         key = cv2.waitKey(5)
+        if key == 32:
+            window['-use_original-'].update(not values['-use_original-'])
 
 window.close()
 cv2.destroyAllWindows()
