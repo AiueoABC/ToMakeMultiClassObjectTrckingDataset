@@ -124,7 +124,7 @@ while True:
         height, width, channels = frame.shape[:3]
 
         img_changed = False
-        # todo read from file
+        # read from file
         savefile = f'{os.path.splitext(fname)[0]}.txt'
         if os.path.exists(savefile):
             # read it
@@ -156,7 +156,8 @@ while True:
                 box_height, box_width = y1 - y0, x1 - x0
                 center_x, center_y = x1 - box_width / 2, y1 - box_height / 2
                 line = f'{cid} {tid} {center_x/width} {center_y/height} {box_width/width} {box_height/height}'
-                if line in save_list:  # todo this won't work
+                ids2check = f'{cid} {tid}'
+                if ids2check in save_list:  # id already exists, ignore
                     pass
                 else:
                     save_list.append(line)
