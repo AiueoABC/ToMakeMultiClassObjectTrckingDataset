@@ -156,7 +156,7 @@ while True:
                 box_height, box_width = y1 - y0, x1 - x0
                 center_x, center_y = x1 - box_width / 2, y1 - box_height / 2
                 line = f'{cid} {tid} {center_x/width} {center_y/height} {box_width/width} {box_height/height}'
-                if line in save_list:
+                if line in save_list:  # todo this won't work
                     pass
                 else:
                     save_list.append(line)
