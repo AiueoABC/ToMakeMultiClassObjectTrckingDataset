@@ -255,16 +255,16 @@ while True:
                             pass
                         else:
                             safe_list.append(positions)
-                    for d_str in save_list:
-                        cid, tid, cx, cy, bw, bh = d_str.split(' ')
-                        x0 = int((float(cx) - float(bw) / 2) * width)
-                        x1 = int((float(cx) + float(bw) / 2) * width)
-                        y0 = int((float(cy) - float(bh) / 2) * height)
-                        y1 = int((float(cy) + float(bh) / 2) * height)
-                        if x_min <= x0 <= x_max and x_min <= x1 <= x_max and y_min <= y0 <= y_max and y_min <= y0 <= y_max:
-                            pass
-                        else:
-                            safe_list.append([cid, tid, x0, y0, x1, y1])
+                    # for d_str in save_list:
+                    #     cid, tid, cx, cy, bw, bh = d_str.split(' ')
+                    #     x0 = int((float(cx) - float(bw) / 2) * width)
+                    #     x1 = int((float(cx) + float(bw) / 2) * width)
+                    #     y0 = int((float(cy) - float(bh) / 2) * height)
+                    #     y1 = int((float(cy) + float(bh) / 2) * height)
+                    #     if x_min <= x0 <= x_max and x_min <= x1 <= x_max and y_min <= y0 <= y_max and y_min <= y0 <= y_max:
+                    #         pass
+                    #     else:
+                    #         safe_list.append([cid, tid, x0, y0, x1, y1])
                     censoring_positions[count] = safe_list
 
             except Exception as e:
